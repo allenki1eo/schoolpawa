@@ -11,6 +11,8 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // CLAUDE.md is the agent guide for this repo; don't generate a second one.
+  agentRules: false,
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },

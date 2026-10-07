@@ -44,6 +44,8 @@ export interface FeedbackDto {
   correctAnswer: number | number[] | boolean;
   explanation: string;
   points: number;
+  /** Static question id (for "flag this question"); null for template instances. */
+  questionRef: string | null;
 }
 
 export interface SummaryDto {
@@ -173,7 +175,8 @@ export async function startSession({ student, topicId, kind, challenge }: StartI
         params: r.params ?? null,
         optionOrder: r.optionOrder,
         difficulty: r.src.difficulty,
-        servedAt: r.position === 0 ? new Date() : null,
+        // Served (and timed) only when the player screen requests it.
+        servedAt: null,
       })),
     );
     // Mark as seen at start, so abandoning a round cannot be used to re-roll questions.
@@ -188,12 +191,7 @@ export async function startSession({ student, topicId, kind, challenge }: StartI
     return s!;
   });
 
-  const first = rows[0]!;
-  return {
-    sessionId: session.id,
-    kind,
-    question: toDto(first.question, first.optionOrder, 0, rows.length, first.src.difficulty),
-  };
+  return { sessionId: session.id, kind };
 }
 
 // ─── State (resume after reload) ────────────────────────────────────────────────────────────
@@ -249,6 +247,7 @@ export async function submitAnswer(student: Student, sessionId: string, position
       correctAnswer: correctDisplay(question.answer, row.optionOrder),
       explanation: question.explanation,
       points: row.points ?? 0,
+      questionRef: row.questionId,
     });
   }
   if (session.status !== "active") throw new ApiError(409, "session_closed");
@@ -275,11 +274,8 @@ export async function submitAnswer(student: Student, sessionId: string, position
       })
       .where(eq(schema.quizSessions.id, sessionId));
     await recordQuestionStats(tx, row, correct, timeMs);
-    // Serve the next question now: its clock starts when this response leaves the server.
-    await tx
-      .update(schema.answers)
-      .set({ servedAt: new Date() })
-      .where(and(eq(schema.answers.sessionId, sessionId), eq(schema.answers.position, position + 1), sql`${schema.answers.servedAt} is null`));
+    // The next question is NOT served here: its clock starts only when the client asks for it
+    // (GET /api/quiz/:id), so time spent reading this feedback never counts against the student.
     return true;
   });
   if (!recorded) return submitAnswer(student, sessionId, position, submitted);
@@ -290,6 +286,7 @@ export async function submitAnswer(student: Student, sessionId: string, position
     correctAnswer: correctDisplay(question.answer, row.optionOrder),
     explanation: question.explanation,
     points,
+    questionRef: row.questionId,
   });
 }
 
@@ -317,12 +314,9 @@ async function buildResponse(student: Student, sessionId: string, position: numb
     .select()
     .from(schema.answers)
     .where(and(eq(schema.answers.sessionId, sessionId), eq(schema.answers.position, position + 1)));
-  if (next) {
-    const q = await questionForAnswerRow({ ...next, sessionSeed: session!.seed });
-    return { feedback, score: session!.score, next: toDto(q, next.optionOrder, next.position, session!.questionCount, next.difficulty) };
-  }
+  if (next) return { feedback, score: session!.score, hasNext: true as const };
   const summary = session!.status === "active" ? await finishSession(student, sessionId) : await summaryFor(student, sessionId);
-  return { feedback, score: summary.score, summary };
+  return { feedback, score: summary.score, hasNext: false as const, summary };
 }
 
 // ─── Finish ─────────────────────────────────────────────────────────────────────────────────

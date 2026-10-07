@@ -30,11 +30,11 @@ export const QUESTION_FLAG_REASONS = ["wrong_answer", "typo", "unclear", "offens
 export type QuestionFlagReason = (typeof QUESTION_FLAG_REASONS)[number];
 
 export const AVATARS = [
-  "simba", "twiga", "tembo", "chui", "duma", "pundamilia", "kiboko", "faru", "tai", "kasuku", "kobe", "pomboo",
+  "simba", "twiga", "tembo", "chui", "nyati", "pundamilia", "kiboko", "faru", "tai", "kasuku", "kobe", "pomboo",
 ] as const;
 export type AvatarKey = (typeof AVATARS)[number];
 
-export const GROUP_EMBLEMS = ["ngao", "nyota", "mwenge", "radi", "taji", "mlima", "jua", "moto"] as const;
+export const GROUP_EMBLEMS = ["ngao", "nyota", "mwenge", "radi", "taji", "mlima", "jua", "roketi"] as const;
 export type GroupEmblemKey = (typeof GROUP_EMBLEMS)[number];
 
 export function isReaction(k: string): k is ReactionKey {
