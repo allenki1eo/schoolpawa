@@ -90,5 +90,5 @@ docs/                      compliance checklist, hosting decision, architecture 
 | Erasure | `src/server/privacy.ts` | Only path allowed to delete ledger rows. |
 | Retention | `src/app/api/cron/retention/route.ts` | Auto-deletes inactive profiles. |
 | Content approval | `src/server/admin/questions.ts` | `ai_draft` needs qualified teacher; licensed/teacher content needs a licence row. |
-| Ledger trigger | `src/db/migrations/0001_ledger_guard.sql` | Append-only enforcement. |
+| Ledger trigger | `src/db/sql/0001_ledger_guard.sql` | Append-only enforcement. |
 | Data residency | `src/server/config.ts` | Warns when `DATA_RESIDENCY` ≠ `tz`. |

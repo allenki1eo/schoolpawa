@@ -42,7 +42,7 @@ describe("createRng", () => {
     const rng = createRng(SEED);
     const counts = new Array(6).fill(0);
     const N = 60_000;
-    for (let i = 0; i < N; i++) counts[rng.int(1, 6) - 1]++;
+    for (let i = 0; i < N; i++) counts[rng.int(1, 6) - 1] += 1;
     for (const c of counts) {
       // Expected 10 000 each; 5 % tolerance is > 10 standard deviations.
       expect(Math.abs(c - N / 6)).toBeLessThan(N / 6 * 0.05);
@@ -73,7 +73,7 @@ describe("createRng", () => {
     const rng = createRng(SEED);
     const counts = [0, 0, 0];
     const N = 40_000;
-    for (let i = 0; i < N; i++) counts[rng.weightedIndex([0.25, 0, 0.75])]++;
+    for (let i = 0; i < N; i++) counts[rng.weightedIndex([0.25, 0, 0.75])]! += 1;
     expect(counts[1]).toBe(0);
     expect(counts[0]! / N).toBeCloseTo(0.25, 1);
     expect(counts[2]! / N).toBeCloseTo(0.75, 1);

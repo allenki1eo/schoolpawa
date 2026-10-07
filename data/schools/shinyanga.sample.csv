@@ -1,0 +1,27 @@
+# SAMPLE DATA for development. Registration numbers prefixed SAMPLE- are not real.
+# Replace with the official school registry export (PO-RALG / NECTA) before the pilot.
+reg_no,name,region,district,stage,enrolled
+SAMPLE-P-001,Mwenge Primary School,Shinyanga,Shinyanga Municipal,primary,1240
+SAMPLE-P-002,Uhuru Primary School,Shinyanga,Shinyanga Municipal,primary,860
+SAMPLE-P-003,Kambarage Primary School,Shinyanga,Shinyanga Municipal,primary,1580
+SAMPLE-P-004,Ibinzamata Primary School,Shinyanga,Shinyanga Municipal,primary,640
+SAMPLE-P-005,Didia Primary School,Shinyanga,Shinyanga Rural,primary,420
+SAMPLE-P-006,Tinde Primary School,Shinyanga,Shinyanga Rural,primary,510
+SAMPLE-P-007,Iselamagazi Primary School,Shinyanga,Shinyanga Rural,primary,180
+SAMPLE-P-008,Nyihogo Primary School,Shinyanga,Kahama Municipal,primary,1720
+SAMPLE-P-009,Mhongolo Primary School,Shinyanga,Kahama Municipal,primary,930
+SAMPLE-P-010,Bugarama Primary School,Shinyanga,Msalala,primary,360
+SAMPLE-P-011,Isaka Primary School,Shinyanga,Msalala,primary,770
+SAMPLE-P-012,Ushetu Primary School,Shinyanga,Ushetu,primary,240
+SAMPLE-P-013,Kishapu Primary School,Shinyanga,Kishapu,primary,690
+SAMPLE-P-014,Maganzo Primary School,Shinyanga,Kishapu,primary,150
+SAMPLE-S-001,Shinyanga Secondary School,Shinyanga,Shinyanga Municipal,secondary,1380
+SAMPLE-S-002,Buluba Secondary School,Shinyanga,Shinyanga Municipal,secondary,720
+SAMPLE-S-003,Old Shinyanga Secondary School,Shinyanga,Shinyanga Rural,secondary,450
+SAMPLE-S-004,Samuye Secondary School,Shinyanga,Shinyanga Rural,secondary,260
+SAMPLE-S-005,Kahama Secondary School,Shinyanga,Kahama Municipal,secondary,1650
+SAMPLE-S-006,Mwendakulima Secondary School,Shinyanga,Kahama Municipal,secondary,540
+SAMPLE-S-007,Bulyanhulu Secondary School,Shinyanga,Msalala,secondary,610
+SAMPLE-S-008,Ukune Secondary School,Shinyanga,Ushetu,secondary,210
+SAMPLE-S-009,Kishapu Secondary School,Shinyanga,Kishapu,secondary,880
+SAMPLE-S-010,Mwadui Secondary School,Shinyanga,Kishapu,secondary,330

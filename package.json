@@ -15,10 +15,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
-    "db:push": "drizzle-kit push && tsx src/db/apply-sql.ts",
+    "db:push": "drizzle-kit push --force && tsx src/db/apply-sql.ts",
     "db:migrate": "drizzle-kit migrate && tsx src/db/apply-sql.ts",
-    "db:seed": "tsx src/db/seed/index.ts",
-    "import:schools": "tsx src/db/seed/import-schools-cli.ts"
+    "db:seed": "tsx --conditions=react-server src/db/seed/index.ts",
+    "import:schools": "tsx --conditions=react-server src/db/seed/import-schools-cli.ts"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
@@ -55,5 +55,6 @@
       "esbuild",
       "unrs-resolver"
     ]
-  }
+  },
+  "type": "module"
 }
