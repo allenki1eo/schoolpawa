@@ -119,23 +119,6 @@ export function OnboardingWizard() {
     go(FLOW[i - 1]!);
   };
 
-  // PIN: enter, then confirm.
-  useEffect(() => {
-    if (step !== "pin") return;
-    if (pinStage === 1 && pin.length === 4) setTimeout(() => setPinStage(2), 150);
-    if (pinStage === 2 && pin2.length === 4) {
-      if (pin2 !== pin) {
-        setError(t.onboarding.pinMismatch);
-        setTimeout(() => {
-          setPin("");
-          setPin2("");
-          setPinStage(1);
-        }, 600);
-      } else void saveLocalProfile();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pin, pin2, pinStage, step]);
-
   /** Store the profile ON THIS DEVICE ONLY until a parent consents. */
   async function saveLocalProfile() {
     if (!school || !grade) return;
@@ -156,6 +139,27 @@ export function OnboardingWizard() {
       });
     }
     go("parent");
+  }
+
+  // PIN: enter, then confirm (handled on input, not in an effect).
+  function onPinChange(v: string) {
+    setError(null);
+    if (pinStage === 1) {
+      setPin(v);
+      // Switch immediately so fast typists don't lose the first confirm digit.
+      if (v.length === 4) setPinStage(2);
+      return;
+    }
+    setPin2(v);
+    if (v.length !== 4) return;
+    if (v !== pin) {
+      setError(t.onboarding.pinMismatch);
+      setTimeout(() => {
+        setPin("");
+        setPin2("");
+        setPinStage(1);
+      }, 600);
+    } else void saveLocalProfile();
   }
 
   async function sendCode() {
@@ -360,11 +364,7 @@ export function OnboardingWizard() {
             <div className="mt-4">
               <PinPad
                 value={pinStage === 1 ? pin : pin2}
-                onChange={(v) => {
-                  setError(null);
-                  if (pinStage === 1) setPin(v);
-                  else setPin2(v);
-                }}
+                onChange={onPinChange}
                 error={Boolean(error)}
                 label={t.onboarding.pinTitle}
               />

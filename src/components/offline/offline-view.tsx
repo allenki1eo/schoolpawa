@@ -32,6 +32,8 @@ export function OfflineView() {
   }, []);
 
   useEffect(() => {
+    // Async IndexedDB load; state is set after the await, not synchronously.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh();
     const onSynced = () => void refresh();
     window.addEventListener("schoolpawa:synced", onSynced);

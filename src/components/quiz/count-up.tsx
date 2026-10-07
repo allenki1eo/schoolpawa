@@ -6,11 +6,11 @@ import { useEffect, useState } from "react";
 export function ScoreCountUp({ value, className, duration = 1100 }: { value: number; className?: string; duration?: number }) {
   const [shown, setShown] = useState(0);
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setShown(value);
-      return;
-    }
     let raf = 0;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      raf = requestAnimationFrame(() => setShown(value));
+      return () => cancelAnimationFrame(raf);
+    }
     const start = performance.now();
     const tick = (now: number) => {
       const p = Math.min(1, (now - start) / duration);

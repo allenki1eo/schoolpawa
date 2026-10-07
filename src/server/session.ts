@@ -13,7 +13,7 @@ const key = new TextEncoder().encode(config.SESSION_SECRET);
 const cookieBase = {
   httpOnly: true,
   sameSite: "lax" as const,
-  secure: config.isProd,
+  secure: config.secureCookies,
   path: "/",
 };
 

@@ -7,6 +7,8 @@ import { z } from "zod";
  */
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  /** Deployment environment. Distinct from NODE_ENV, which is "production" for every `next build`. */
+  APP_ENV: z.enum(["development", "staging", "production"]).default("development"),
   DATABASE_URL: z.string().url(),
   REDIS_URL: z.string().optional().default(""),
   APP_URL: z.string().url().default("http://localhost:3000"),
@@ -42,7 +44,7 @@ function load() {
   }
   const env = parsed.data;
 
-  if (env.NODE_ENV === "production") {
+  if (env.APP_ENV === "production") {
     if (env.SMS_DRIVER === "console") throw new Error("SMS_DRIVER=console is not allowed in production.");
     if (env.TOPIC_LIVE_MIN < 60) throw new Error("TOPIC_LIVE_MIN must be ≥ 60 in production (PRD §4.1).");
   }
@@ -56,7 +58,9 @@ function load() {
 
   return {
     ...env,
-    isProd: env.NODE_ENV === "production",
+    isProd: env.APP_ENV === "production",
+    /** Secure cookies everywhere except local http dev. */
+    secureCookies: env.APP_URL.startsWith("https://"),
     blockedTermsExtra: env.BLOCKED_TERMS_EXTRA.split(",").map((s) => s.trim()).filter(Boolean),
   };
 }

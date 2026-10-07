@@ -10,8 +10,9 @@ pnpm install
 cp .env.example .env              # fill DATABASE_URL etc.
 pnpm db:push                   # apply schema (drizzle-kit push) — dev
 pnpm db:migrate                # apply SQL migrations incl. ledger trigger — prod
-pnpm db:seed                   # grade levels, subjects, topics, lessons, questions, admin
-pnpm import:schools -- data/schools/shinyanga.sample.csv
+pnpm db:seed                   # grade levels, subjects, topics, lessons, questions, admin, sample schools
+pnpm db:seed --demo            # …plus demo students + 2 weeks of ledger history (dev only)
+pnpm import:schools data/schools/shinyanga.sample.csv
 pnpm dev                       # http://localhost:3000
 pnpm test                          # vitest (unit tests: randomiser, templates, ranking, safety)
 pnpm typecheck                 # tsc --noEmit
@@ -21,6 +22,13 @@ pnpm build                     # production build; check First Load JS in output
 
 Dev without Redis: leave `REDIS_URL` empty → in-memory store (single process only).
 Dev without Africa's Talking: `SMS_DRIVER=console` prints OTPs to the server log.
+`APP_ENV=production` (not `NODE_ENV`) turns on deploy safety checks (no console SMS, `TOPIC_LIVE_MIN ≥ 60`).
+Scripts run with `tsx --conditions=react-server` so `server-only` modules can be imported.
+Cron (POST, `Authorization: Bearer $CRON_SECRET`): `/api/cron/retention` daily, `/api/cron/rebuild` nightly,
+`/api/cron/snapshot` Mondays 00:05 EAT.
+
+Next.js 16 notes: `params`/`searchParams`/`cookies()` are async; `next lint` is gone (use `pnpm lint`);
+bundled docs live in `node_modules/next/dist/docs/`.
 
 ## Stack
 

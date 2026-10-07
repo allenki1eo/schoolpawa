@@ -10,7 +10,7 @@ const key = new TextEncoder().encode(`${config.SESSION_SECRET}:parent`);
 
 export async function startParentSession(guardianId: string) {
   const token = await new SignJWT({ gid: guardianId }).setProtectedHeader({ alg: "HS256" }).setIssuedAt().setExpirationTime(`${MAX_AGE}s`).sign(key);
-  (await cookies()).set(COOKIE, token, { httpOnly: true, sameSite: "strict", secure: config.isProd, path: "/", maxAge: MAX_AGE });
+  (await cookies()).set(COOKIE, token, { httpOnly: true, sameSite: "strict", secure: config.secureCookies, path: "/", maxAge: MAX_AGE });
 }
 
 export async function currentGuardianId(): Promise<string | null> {

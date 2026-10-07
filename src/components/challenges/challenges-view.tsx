@@ -100,7 +100,7 @@ export function ChallengesView({
       <div className="flex items-center justify-between">
         <h1 className="font-display text-3xl font-black">{t.challenges.title}</h1>
         <Button variant="gold" size="sm" onClick={() => { setCreated(null); setOpen(true); }}>
-          <Plus className="size-4" aria-hidden /> {t.challenges.newTitle}
+          <Plus className="size-4" aria-hidden /> {t.challenges.newShort}
         </Button>
       </div>
 
@@ -226,11 +226,12 @@ function ChallengeCard({ c, me, locale, onAccept, onDecline }: { c: ChallengeRow
           {c.opponent ? <Avatar avatar={c.opponent.avatar} size={40} className="ring-2 ring-ink-900" /> : <span className="grid size-10 place-items-center rounded-full bg-ink-700 text-subtle ring-2 ring-ink-900">?</span>}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold">
-            {t.common.you} <span className="text-subtle">{t.challenges.vs}</span> {them ? `${them.nickname}` : "…"}
-          </p>
+          <p className="text-[0.7rem] text-subtle">{t.common.you} {t.challenges.vs}</p>
+          <p className="truncate font-semibold">{them ? them.nickname : "…"}</p>
           <p className="truncate text-xs text-subtle">{c.topic[locale]}</p>
         </div>
+      </div>
+      <div className="mt-2 flex flex-wrap gap-2 empty:hidden">
         {won ? <Badge tone="gold"><Trophy className="size-3.5" aria-hidden />{fmt(t.challenges.won, { n: CHALLENGE_WIN_BONUS })}</Badge> : null}
         {lost ? <Badge tone="danger">{t.challenges.lost}</Badge> : null}
         {draw ? <Badge tone="info">{t.challenges.draw} +{CHALLENGE_DRAW_BONUS}</Badge> : null}

@@ -36,7 +36,7 @@ export function GroupsView({ groups }: { groups: GroupRow[] }) {
       <div className="flex items-center justify-between">
         <h1 className="font-display text-3xl font-black">{t.groups.title}</h1>
         <Button variant="gold" size="sm" onClick={() => setOpen(true)}>
-          <Plus className="size-4" aria-hidden /> {t.groups.create}
+          <Plus className="size-4" aria-hidden /> {t.groups.createShort}
         </Button>
       </div>
 

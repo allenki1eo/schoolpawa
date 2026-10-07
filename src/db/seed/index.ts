@@ -20,7 +20,7 @@ const approve = process.env.SEED_APPROVE_CONTENT === "true";
 const status = approve ? "approved" : "in_review";
 
 async function main() {
-  if (process.env.NODE_ENV === "production" && approve) throw new Error("SEED_APPROVE_CONTENT is not allowed in production.");
+  if (process.env.APP_ENV === "production" && approve) throw new Error("SEED_APPROVE_CONTENT is not allowed in production.");
 
   for (const g of GRADE_LEVELS) {
     await db.insert(schema.gradeLevels).values(g).onConflictDoUpdate({ target: schema.gradeLevels.id, set: g });
@@ -93,7 +93,7 @@ async function main() {
   console.log(`✓ schools: ${result.created} created, ${result.updated} updated, ${result.issues.length} issues`);
 
   if (process.argv.includes("--demo")) {
-    if (process.env.NODE_ENV === "production") throw new Error("Demo data is not allowed in production.");
+    if (process.env.APP_ENV === "production") throw new Error("Demo data is not allowed in production.");
     await seedDemo();
   }
 }

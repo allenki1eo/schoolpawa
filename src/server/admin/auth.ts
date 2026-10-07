@@ -21,7 +21,7 @@ export async function adminLogin(email: string, password: string, ipKey: string)
   const [admin] = await db.select().from(schema.admins).where(eq(schema.admins.email, email.toLowerCase().trim()));
   if (!admin || !admin.active || !(await verifySecret(password, admin.passwordHash))) return false;
   const token = await new SignJWT({ aid: admin.id }).setProtectedHeader({ alg: "HS256" }).setIssuedAt().setExpirationTime(`${MAX_AGE}s`).sign(key);
-  (await cookies()).set(COOKIE, token, { httpOnly: true, sameSite: "strict", secure: config.isProd, path: "/admin", maxAge: MAX_AGE });
+  (await cookies()).set(COOKIE, token, { httpOnly: true, sameSite: "strict", secure: config.secureCookies, path: "/admin", maxAge: MAX_AGE });
   await audit({ actorType: "admin", actorId: admin.id, action: "admin.login" });
   return true;
 }

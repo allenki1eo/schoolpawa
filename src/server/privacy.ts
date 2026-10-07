@@ -135,7 +135,7 @@ export async function runRetention(inactiveDays: number) {
   });
 
   // Orphaned devices with no profiles left.
-  await db.execute(sql`delete from devices d where not exists (select 1 from device_profiles p where p.device_id = d.id) and d.last_seen_at < ${cutoff}`);
+  await db.execute(sql`delete from devices d where not exists (select 1 from device_profiles p where p.device_id = d.id) and d.last_seen_at < ${cutoff.toISOString()}`);
   await audit({ actorType: "system", action: "retention.run", meta: { erasedProfiles: stale.length, otpsDeleted: otps.length, auditPurged: purged.length } });
   return { erasedProfiles: stale.length, otpsDeleted: otps.length, auditPurged: purged.length };
 }
