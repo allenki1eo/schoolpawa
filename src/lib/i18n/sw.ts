@@ -287,6 +287,17 @@ export const sw = {
     improvedSchool: "Shule",
     noData: "Bado hakuna matokeo wiki hii. Kuwa wa kwanza!",
   },
+  badges: {
+    title: "Medali",
+    first_round: "Mzunguko wa kwanza",
+    perfect_round: "Alama kamili",
+    streak_3: "Siku 3 mfululizo",
+    streak_7: "Wiki ya moto",
+    streak_30: "Mwezi wa bidii",
+    first_win: "Ushindi wa kwanza 1v1",
+    group_founder: "Mwanzilishi wa kikundi",
+    daily_5: "Changamoto 5 za leo",
+  },
   levels: {
     mwanafunzi: "Mwanafunzi",
     shujaa: "Shujaa",

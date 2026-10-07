@@ -152,6 +152,16 @@ export async function rebuildStudentBoards() {
   return { students: rows.length };
 }
 
+/**
+ * Self-healing cache: if Redis lost the boards (restart, eviction, fresh deploy), rebuild them
+ * from the ledger once. A marker key prevents rebuilding on every request.
+ */
+export async function ensureStudentBoards() {
+  if (await kv.get("lb:built")) return;
+  await kv.set("lb:built", "1", 60 * 60 * 24);
+  await rebuildStudentBoards();
+}
+
 // ─── School Power ───────────────────────────────────────────────────────────────────────────
 
 export interface SchoolStatsRow extends SchoolPeriodStats {

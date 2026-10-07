@@ -285,6 +285,17 @@ export const en: Dictionary = {
     improvedSchool: "School",
     noData: "No results yet this week. Be the first!",
   },
+  badges: {
+    title: "Badges",
+    first_round: "First round",
+    perfect_round: "Perfect score",
+    streak_3: "3-day streak",
+    streak_7: "Week on fire",
+    streak_30: "Month of effort",
+    first_win: "First 1v1 win",
+    group_founder: "Group founder",
+    daily_5: "5 daily challenges",
+  },
   levels: {
     mwanafunzi: "Mwanafunzi",
     shujaa: "Shujaa",
