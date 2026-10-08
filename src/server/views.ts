@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db/client";
 import { localDate } from "@/lib/time";
 import { dailyTopicFor } from "./quiz/daily";
@@ -55,4 +55,33 @@ export async function dailyStatus(student: typeof schema.students.$inferSelect) 
     .from(schema.quizSessions)
     .where(and(eq(schema.quizSessions.studentId, student.id), eq(schema.quizSessions.kind, "daily"), eq(schema.quizSessions.dailyDate, today)));
   return { topic, subject: subject!, played: played ?? null };
+}
+
+/** Which days (Mon..Sun, local) of the current week the student completed a round. */
+export async function activeDaysThisWeek(studentId: string) {
+  const { weekStart: ws, localDate: ld } = await import("@/lib/time");
+  const monday = ws();
+  const rows = await db.execute<{ d: string }>(sql`
+    select distinct to_char((finished_at at time zone 'Africa/Dar_es_Salaam')::date, 'YYYY-MM-DD') as d
+    from quiz_sessions
+    where student_id = ${studentId} and status = 'completed'
+      and finished_at >= ${new Date(`${monday}T00:00:00+03:00`).toISOString()}`);
+  const days = new Set(rows.map((r) => r.d));
+  const active = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(`${monday}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + i);
+    return days.has(d.toISOString().slice(0, 10));
+  });
+  const todayIndex = Math.round((Date.parse(`${ld()}T00:00:00Z`) - Date.parse(`${monday}T00:00:00Z`)) / 86_400_000);
+  return { active, todayIndex };
+}
+
+/** Best correct count per topic (for mastery stars). */
+export async function topicBests(studentId: string) {
+  const rows = await db
+    .select({ topicId: schema.quizSessions.topicId, best: sql<number>`max(${schema.quizSessions.correctCount})`.mapWith(Number), rounds: sql<number>`count(*)`.mapWith(Number) })
+    .from(schema.quizSessions)
+    .where(and(eq(schema.quizSessions.studentId, studentId), eq(schema.quizSessions.status, "completed")))
+    .groupBy(schema.quizSessions.topicId);
+  return new Map(rows.map((r) => [r.topicId, r]));
 }

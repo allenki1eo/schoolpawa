@@ -29,6 +29,7 @@ export function GroupDetail({
   period,
   reactions,
   appUrl,
+  battles,
 }: {
   me: string;
   group: { id: string; name: string; emblem: string; inviteCode: string; creatorId: string | null; streak: number };
@@ -36,6 +37,7 @@ export function GroupDetail({
   period: "weekly" | "all";
   reactions: Reaction[];
   appUrl: string;
+  battles?: React.ReactNode;
 }) {
   const { t } = useI18n();
   const toast = useToast();
@@ -137,6 +139,8 @@ export function GroupDetail({
           ))}
         </ol>
       </section>
+
+      {battles}
 
       <section>
         <SectionTitle>{t.groups.activity}</SectionTitle>

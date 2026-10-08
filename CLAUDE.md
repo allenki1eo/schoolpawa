@@ -54,6 +54,7 @@ src/
   lib/                     PURE, framework-free logic — unit tested
     quiz/                  rng (HMAC-DRBG), selection, shuffle, templates (expr evaluator), grading, scoring
     ranking/               school-power, elo, improvement, levels
+    game/                  quests, mastery stars, combo tiers, group-battle scoring
     safety/                profanity/abuse filter (sw + en), handle generation
     integrity/             anomaly heuristics
     i18n/                  dictionaries (sw default, en)
@@ -72,6 +73,9 @@ docs/                      compliance checklist, hosting decision, architecture 
 * **`src/server` is server-only.** Every file starts with `import "server-only"`.
 * **Config** comes from `src/server/config.ts` (zod-validated env). Never read `process.env`
   elsewhere.
+* **Quests, tournaments and battles add no scoring state** — they are views over the ledger.
+  Quest rewards use `source = quest` and are excluded from School Power.
+* **Notifications are in-app only** (`server/notifications.ts`): ids and preset keys in payloads.
 * **Points only via `server/ledger.ts`.** Never `UPDATE` points. Never compute rankings from
   anything but the ledger (Redis is a cache; `rebuildLeaderboards()` restores it).
 * **Answers never leave the server** before submission. API DTOs are built in

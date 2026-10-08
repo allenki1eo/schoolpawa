@@ -35,6 +35,8 @@
 
 ## No gambling · no ads/payments to children · copyright · online content
 
+- Quests have fixed, published rewards (no random rewards); tournaments and group battles award
+  rankings/trophies only. Notifications are in-app only (no push to children).
 - No paid entry, cash/airtime prizes, loot boxes; Terms state points have no monetary value. No payment code exists.
 - Content approval rules in `src/server/admin/questions.ts`: `ai_draft` needs a qualified teacher; `licensed` /
   `teacher_submitted` need a recorded licence; no self-approval. NECTA/textbook text only under licence.

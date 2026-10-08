@@ -8,7 +8,7 @@ import { recentAccuracy, selectQuestions } from "@/lib/quiz/selection";
 import { correctDisplay, displayedOptions, isCorrect, shuffleOptions } from "@/lib/quiz/shuffle";
 import { instantiate, render } from "@/lib/quiz/template";
 import type { ConcreteQuestion, Difficulty, SubmittedAnswer } from "@/lib/quiz/types";
-import { leveledUp } from "@/lib/ranking/levels";
+import { leveledUp, levelFor } from "@/lib/ranking/levels";
 import { localDate } from "@/lib/time";
 import type { ChallengeItem } from "@/db/schema";
 import { ApiError } from "../http";
@@ -362,6 +362,10 @@ async function finishSession(student: Student, sessionId: string): Promise<Summa
     await onChallengeSessionFinished(outcome.session.challengeId);
   }
   const [fresh] = await db.select({ xp: schema.students.xp }).from(schema.students).where(eq(schema.students.id, student.id));
+  if (leveledUp(xpBefore, fresh!.xp)) {
+    const { notify } = await import("../notifications");
+    await notify(student.id, "level_up", { level: levelFor(fresh!.xp).key });
+  }
   return {
     score: outcome.session.score,
     correct: outcome.session.correctCount,

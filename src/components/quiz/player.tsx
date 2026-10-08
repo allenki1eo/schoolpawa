@@ -14,6 +14,10 @@ import { errorMessage, fmt } from "@/lib/i18n";
 import { levelFor } from "@/lib/ranking/levels";
 import { QUESTION_FLAG_REASONS } from "@/lib/safety/presets";
 import type { SubmittedAnswer } from "@/lib/quiz/types";
+import { Confetti } from "@/components/game/confetti";
+import { Stars } from "@/components/game/stars";
+import { Progress } from "@/components/ui/progress";
+import { comboTier, starsFor } from "@/lib/game/mastery";
 import { CountdownRing } from "./countdown";
 import { ScoreCountUp } from "./count-up";
 
@@ -165,9 +169,14 @@ export function Player({
             />
           ))}
         </div>
-        <span className="num inline-flex items-center gap-1 rounded-full bg-gold-400/12 px-3 py-1.5 text-sm font-black text-gold-200 ring-1 ring-gold-400/25">
+        <span className="num relative inline-flex items-center gap-1 rounded-full bg-gold-400/12 px-3 py-1.5 text-sm font-black text-gold-200 ring-1 ring-gold-400/25">
           <Zap className="size-3.5" fill="currentColor" aria-hidden />
           {score}
+          {answered && feedback && feedback.points > 0 ? (
+            <span key={q.position} aria-hidden className="float-up absolute -bottom-1 right-1 text-base font-black text-gold-200 motion-reduce:hidden">
+              +{feedback.points}
+            </span>
+          ) : null}
         </span>
       </header>
       <span className="sr-only" role="progressbar" aria-valuenow={Math.round(progress * 100)} aria-valuemin={0} aria-valuemax={100} />
@@ -179,11 +188,7 @@ export function Player({
         <CountdownRing deadline={deadline} limitMs={q.limitMs} running={phase === "question"} onExpire={onTimeout} label={t.quiz.timeLeft} />
       </div>
 
-      {streakRun >= 3 && phase !== "question" ? (
-        <p className="mt-2 inline-flex items-center gap-1 self-start rounded-full bg-orange-500/15 px-2.5 py-1 text-xs font-bold text-orange-300 motion-safe:animate-pop">
-          🔥 ×{streakRun}
-        </p>
-      ) : null}
+      <ComboMeter run={streakRun} />
 
       {/* Question */}
       <section key={q.position} className="mt-4 flex flex-1 flex-col motion-safe:animate-rise">
@@ -447,6 +452,7 @@ function SummaryScreen({ summary, sessionId, accent }: { summary: Summary; sessi
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col items-center px-5 pt-10 pb-8 text-center" style={{ ["--accent" as string]: accent }}>
+      {ratio >= 0.7 ? <Confetti count={ratio === 1 ? 60 : 36} /> : null}
       <div className="relative">
         {ratio >= 0.7 ? <span aria-hidden className="absolute inset-0 rounded-full bg-gold-400/40 motion-safe:animate-burst" /> : null}
         <span className="relative grid size-28 place-items-center rounded-full bg-gradient-to-b from-gold-200/25 to-gold-500/5 ring-2 ring-gold-400/50 shadow-[var(--shadow-glow-gold)]">
@@ -455,13 +461,25 @@ function SummaryScreen({ summary, sessionId, accent }: { summary: Summary; sessi
       </div>
       <h1 className="font-display mt-6 text-3xl font-black">{headline}</h1>
       <p className="num mt-1 text-muted">{fmt(t.results.correctOf, { correct: summary.correct, total: summary.total })}</p>
+      <Stars value={starsFor(summary.correct, summary.total)} size={34} className="mt-4 gap-2 motion-safe:animate-pop" />
 
-      <div className="mt-8">
+      <div className="mt-6">
         <ScoreCountUp value={summary.score} className="font-display text-7xl font-black text-gold-gradient" />
         <p className="mt-1 text-sm font-semibold text-gold-200">{fmt(t.results.pointsEarned, { n: summary.score })}</p>
       </div>
 
-      <div className="mt-8 grid w-full gap-3 text-left">
+      <div className="surface mt-6 w-full rounded-2xl p-4 text-left">
+        <div className="mb-2 flex items-center justify-between text-xs font-bold">
+          <span className="text-gold-200">{t.levels[level.key]}</span>
+          <span className="num text-subtle">{summary.xp.toLocaleString("en-US")} XP</span>
+        </div>
+        <XpFill progress={level.progress} />
+        <p className="mt-1.5 text-[0.7rem] text-subtle">
+          {level.next ? fmt(t.home.toNext, { n: level.xpToNext.toLocaleString("en-US"), level: t.levels[level.next] }) : t.home.maxLevel}
+        </p>
+      </div>
+
+      <div className="mt-3 grid w-full gap-3 text-left">
         {summary.held ? <Notice tone="info">{t.results.held}</Notice> : null}
         {summary.leveledUp ? (
           <Notice tone="gold">
@@ -487,6 +505,36 @@ function SummaryScreen({ summary, sessionId, accent }: { summary: Summary; sessi
       </div>
     </div>
   );
+}
+
+/** Cosmetic combo meter: grows with consecutive correct answers. Scoring never depends on it. */
+function ComboMeter({ run }: { run: number }) {
+  const tier = comboTier(run);
+  if (tier === 0) return null;
+  const label = ["", "COMBO", "SUPER COMBO", "MEGA COMBO"][tier];
+  return (
+    <p
+      key={run}
+      className={cn(
+        "mt-2 inline-flex items-center gap-1.5 self-start rounded-full px-3 py-1 text-xs font-black tracking-wide ring-1 motion-safe:animate-pop",
+        tier === 1 && "bg-orange-500/15 text-orange-300 ring-orange-400/30",
+        tier === 2 && "bg-gradient-to-r from-orange-500/30 to-red-500/20 text-orange-200 ring-orange-400/50",
+        tier === 3 && "bg-gradient-to-r from-fuchsia-500/30 via-orange-500/30 to-gold-400/30 text-white ring-gold-400/60 shadow-[var(--shadow-glow-gold)]",
+      )}
+    >
+      {"🔥".repeat(tier)} {label} ×{run}
+    </p>
+  );
+}
+
+/** XP bar that fills after mount so the progress visibly animates in. */
+function XpFill({ progress }: { progress: number }) {
+  const [shown, setShown] = useState(0);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setShown(progress));
+    return () => cancelAnimationFrame(id);
+  }, [progress]);
+  return <Progress value={shown} label="XP" />;
 }
 
 function Notice({ tone, children }: { tone: "info" | "gold" | "flame"; children: React.ReactNode }) {

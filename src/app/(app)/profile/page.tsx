@@ -11,7 +11,12 @@ import { cn } from "@/lib/client/cn";
 import { fmt } from "@/lib/i18n";
 import { levelFor, LEVELS } from "@/lib/ranking/levels";
 import { formatHandle } from "@/lib/safety/codes";
+import { sql } from "drizzle-orm";
+import { db } from "@/db/client";
+import { starsFor } from "@/lib/game/mastery";
 import { BADGES, earnedBadges } from "@/server/badges";
+import { groupBattleWins } from "@/server/battles";
+import { topicBests } from "@/server/views";
 import { getDict } from "@/server/locale";
 import { requireStudent } from "@/server/session";
 import { studentContext } from "@/server/views";
@@ -21,7 +26,22 @@ export const metadata = { title: "Wasifu" };
 export default async function ProfilePage() {
   const student = await requireStudent();
   const { t, locale } = await getDict();
-  const [ctx, badges] = await Promise.all([studentContext(student), earnedBadges(student.id, student.streakDays)]);
+  const [ctx, badges, battleWins, bests, counts] = await Promise.all([
+    studentContext(student),
+    earnedBadges(student.id, student.streakDays),
+    groupBattleWins(student.id),
+    topicBests(student.id),
+    db.execute<{ wins: string; perfect: string }>(sql`select
+      (select count(*) from challenges where winner_id = ${student.id}) as wins,
+      (select count(*) from quiz_sessions where student_id = ${student.id} and status = 'completed' and correct_count = question_count) as perfect`),
+  ]);
+  const stars = [...bests.values()].reduce((n, b) => n + starsFor(b.best), 0);
+  const trophies = [
+    { label: t.trophies.challengeWins, value: Number(counts[0]?.wins ?? 0), emoji: "⚔️" },
+    { label: t.trophies.battleWins, value: battleWins, emoji: "🛡️" },
+    { label: t.trophies.perfect, value: Number(counts[0]?.perfect ?? 0), emoji: "💯" },
+    { label: t.trophies.stars, value: stars, emoji: "⭐" },
+  ];
   const level = levelFor(student.xp);
   const handle = formatHandle(student.nickname, student.discriminator);
 
@@ -59,6 +79,20 @@ export default async function ProfilePage() {
           ))}
         </ol>
       </Card>
+
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-[#2a1f0a] to-ink-900 p-4 ring-1 ring-gold-400/25">
+        <div aria-hidden className="kanga-edge absolute inset-x-0 top-0 h-1.5" />
+        <h2 className="font-display mb-3 text-lg font-bold text-gold-200">{t.trophies.title}</h2>
+        <ul className="grid grid-cols-4 gap-2">
+          {trophies.map((tr) => (
+            <li key={tr.label} className="flex flex-col items-center gap-1 rounded-2xl bg-black/25 px-1 py-3 text-center ring-1 ring-gold-400/10">
+              <span className="text-2xl" aria-hidden>{tr.emoji}</span>
+              <span className="num font-display text-xl font-black text-gold-gradient">{tr.value}</span>
+              <span className="text-[0.6rem] leading-tight font-semibold text-muted">{tr.label}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section>
         <SectionTitle>{t.badges.title}</SectionTitle>

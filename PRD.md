@@ -157,6 +157,17 @@ power  = bayes × (1 + bonus)
 Badges (Phase 1 set): first round, perfect round, 3/7/30-day streak, first 1v1 win, group founder,
 daily-challenge week.
 
+### 3.6 Gamification & Phase 2 modules (built)
+
+| Feature | Rules |
+| --- | --- |
+| **Quests** | 4 daily + 3 weekly goals (`src/lib/game/quests.ts`) with **fixed** XP rewards. Progress is derived from existing records; claims are verified server-side and written once (`quest_claims` PK) to the ledger as `source = quest`. Quest XP counts for levels and student boards but is **excluded from School Power** so school rankings reflect learning, not chores. No randomness, nothing purchasable. |
+| **Mastery stars** | Per topic from the best round: ≥ 5/10 ★, ≥ 7/10 ★★, ≥ 9/10 ★★★. Shown on the Learn map. |
+| **Combo meter** | Cosmetic only (3/5/8 correct in a row); scoring never depends on it. |
+| **Inbox** | In-app only — no push notifications to children. Payloads hold ids/preset keys; names resolved at read time, so erased students disappear. |
+| **School vs School tournaments** | Admin-created themed windows (stage × region or national × topics). A tournament is a *filter over the ledger*: counted points from rounds in the theme topics inside the window, ranked with the School Power formula. No prizes of monetary value. |
+| **Group vs Group battles** | A group founder challenges another group by invite code on one topic; the rival founder accepts within 48 h; battle lasts 3 days. Score = topic points in the window ÷ **all** members (inactive members count as zero, so the group that plays together wins). Both groups need ≥ 3 members. Settled lazily and by the nightly cron. |
+
 ---
 
 ## 4. Question bank and randomness
@@ -341,6 +352,6 @@ capped points and never count toward Daily Challenge or 1v1.
 | --- | --- |
 | **0 — Foundations** | `CLAUDE.md`, `PRD.md`, architecture, compliance checklist. |
 | **1 — Shinyanga pilot** (this build) | One region; schools via CSV import; Std 7 + Form 4, two subjects each; sw/en UI; onboarding + multi-profile + SMS consent; Learn → Quiz with full randomisation engine; Daily Challenge; 1v1; Groups (preset reactions, leaderboards, streaks); Student + School Power boards with improvement awards; admin (question pipeline, CSV import, moderation, held points, breach log, audit log); offline packs + sync queue; parent portal; retention job; unit tests for randomiser and ranking. |
-| **2 — Scale content & competition** | All regions & grades; school-vs-school weekly tournaments; group-vs-group challenges; teacher accounts, verified schools; teacher content portal with licence e-signature; question stats dashboards; push notifications (opt-in, parent-controlled). |
+| **2 — Scale content & competition** | ✅ built: quests, mastery map, inbox, school-vs-school tournaments, group-vs-group battles. Remaining: all regions & grades; teacher accounts, verified schools; teacher content portal with licence e-signature; question stats dashboards; push notifications (opt-in, parent-controlled). |
 | **3 — Distribution** | TWA/APK wrapper, Play Store listing (Families policy review), data-saver mode, USSD/SMS daily question for feature phones, AI drafting assistant (always teacher-approved). |
 | **4 — Ecosystem** | School dashboards for teachers, regional education office reports (aggregate only), optional parent/school paid features via verified accounts. |

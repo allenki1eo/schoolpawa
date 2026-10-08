@@ -192,7 +192,7 @@ export async function schoolStats(week: string | null): Promise<SchoolStatsRow[]
     left join (
       select school_id, sum(amount) as points, count(distinct student_id) as active
       from points_ledger
-      where status = 'counted' ${week ? sql`and week_start = ${week}` : sql``}
+      where status = 'counted' and source <> 'quest' ${week ? sql`and week_start = ${week}` : sql``}
       group by school_id
     ) agg on agg.school_id = sc.id
     where sc.active`);

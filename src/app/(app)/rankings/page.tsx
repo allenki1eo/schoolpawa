@@ -30,7 +30,12 @@ export default async function RankingsPage({ searchParams }: { searchParams: Pro
 
   return (
     <div className="space-y-5">
-      <h1 className="font-display text-3xl font-black">{t.rankings.title}</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="font-display text-3xl font-black">{t.rankings.title}</h1>
+        <Link href="/tournaments" className="inline-flex items-center gap-1.5 rounded-full bg-violet-500/15 px-3 py-1.5 text-sm font-bold text-violet-200 ring-1 ring-violet-400/30">
+          🏆 {t.nav.tournaments}
+        </Link>
+      </div>
       <Tabs
         items={[
           { href: href({ tab: "students" }), label: t.rankings.students, active: tab === "students" },

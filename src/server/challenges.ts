@@ -14,6 +14,7 @@ import { audit } from "./audit";
 import { secureRandomInt } from "./crypto";
 import { ApiError } from "./http";
 import { afterCommit, award } from "./ledger";
+import { notify } from "./notifications";
 import { rateLimit } from "./rate-limit";
 import { candidatesFor, loadSources } from "./quiz/content";
 import { startSession } from "./quiz/engine";
@@ -126,6 +127,7 @@ export async function createChallenge(student: Student, input: CreateChallengeIn
 
   const started = await startSession({ student, topicId: topic.id, kind: "challenge", challenge: { id: challenge.id, items } });
   await db.update(schema.challenges).set({ challengerSessionId: started.sessionId }).where(eq(schema.challenges.id, challenge.id));
+  if (opponent) await notify(opponent.id, "challenge_received", { challengeId: challenge.id, fromStudentId: student.id, topicId: topic.id, code: challenge.code });
   await audit({ actorType: "student", actorId: student.id, action: "challenge.create", targetType: "challenge", targetId: challenge.id });
   return { challengeId: challenge.id, code: challenge.code, ...started };
 }
@@ -213,6 +215,8 @@ export async function onChallengeSessionFinished(challengeId: string) {
     return awards;
   });
   if (!result) return;
+  await notify(c.challengerId, "challenge_result", { challengeId: c.id, fromStudentId: c.opponentId, winnerId, topicId: c.topicId });
+  await notify(c.opponentId, "challenge_result", { challengeId: c.id, fromStudentId: c.challengerId, winnerId, topicId: c.topicId });
   for (const r of result) await afterCommit(r.studentId, [{ amount: r.amount, result: r.result }]);
 }
 

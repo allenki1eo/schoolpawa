@@ -17,7 +17,32 @@ const NICKS = [
   "Kipaji", "Mshindi", "Furaha", "Subira", "Hekima", "Busara", "Nuru", "Mwanga", "Chui", "Twiga", "Kasuku",
 ];
 
+/** A live regional tournament per stage for the current week (idempotent). */
+async function seedDemoTournaments() {
+  const [existing] = await db.select({ n: sql<number>`count(*)`.mapWith(Number) }).from(schema.tournaments);
+  if ((existing?.n ?? 0) > 0) return;
+  const topics = await db.select().from(schema.topics);
+  const thisWeek = weekStart();
+  // A live regional tournament for each stage (this week) so the feature is visible in dev.
+  const [region] = await db.select().from(schema.regions).limit(1);
+  for (const stage of ["primary", "secondary"] as const) {
+    const grade = stage === "primary" ? "std7" : "form4";
+    const ids = topics.filter((t) => t.gradeLevelId === grade && t.isLive).map((t) => t.id);
+    await db.insert(schema.tournaments).values({
+      titleSw: stage === "primary" ? "Kombe la Shinyanga: Wiki ya Sayansi na Hisabati" : "Shinyanga Cup: STEM Week",
+      titleEn: stage === "primary" ? "Shinyanga Cup: Science & Maths Week" : "Shinyanga Cup: STEM Week",
+      stage,
+      regionId: region?.id ?? null,
+      topicIds: ids,
+      startsAt: new Date(`${thisWeek}T00:00:00+03:00`),
+      endsAt: new Date(new Date(`${thisWeek}T00:00:00+03:00`).getTime() + 7 * 86_400_000 - 1000),
+    });
+  }
+  console.log("✓ demo: live tournaments for this week");
+}
+
 export async function seedDemo() {
+  await seedDemoTournaments();
   const [already] = await db.select({ n: sql<number>`count(*)`.mapWith(Number) }).from(schema.students).where(like(schema.students.nickname, "%Demo%"));
   if ((already?.n ?? 0) > 0) {
     console.log("• demo data already present");

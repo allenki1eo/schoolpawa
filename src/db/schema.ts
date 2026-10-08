@@ -53,6 +53,8 @@ export const ledgerSourceEnum = pgEnum("ledger_source", [
   /** Resolution marker for a held entry that a moderator rejected. Never counted. */
   "void",
   "adjustment",
+  /** Fixed rewards for completing quests. Counts for student XP, excluded from School Power. */
+  "quest",
 ]);
 export const ledgerStatusEnum = pgEnum("ledger_status", ["counted", "held"]);
 export const reportTargetEnum = pgEnum("report_target", ["student", "group", "question"]);
@@ -597,3 +599,77 @@ export const breachIncidents = pgTable("breach_incidents", {
   createdBy: uuid("created_by").references(() => admins.id),
   createdAt: createdAt(),
 });
+
+// ─── Phase 2: quests, notifications, tournaments, group battles ──────────────────────────────
+
+/** One row per claimed quest per period (day or week) — the unique key prevents double rewards. */
+export const questClaims = pgTable(
+  "quest_claims",
+  {
+    studentId: uuid("student_id").notNull().references(() => students.id, { onDelete: "cascade" }),
+    questKey: text("quest_key").notNull(),
+    /** YYYY-MM-DD: the local day for daily quests, the local Monday for weekly quests. */
+    period: date("period").notNull(),
+    reward: integer("reward").notNull(),
+    claimedAt: ts("claimed_at").notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.studentId, t.questKey, t.period] })],
+);
+
+/** In-app inbox only (no push to children). Payload holds ids and preset keys, never free text. */
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: id(),
+    studentId: uuid("student_id").notNull().references(() => students.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    payload: jsonb("payload").$type<Record<string, string | number | null>>().notNull().default({}),
+    readAt: ts("read_at"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("notifications_student").on(t.studentId, t.createdAt)],
+);
+
+export const tournamentStatusEnum = pgEnum("tournament_status", ["scheduled", "cancelled"]);
+
+/** School vs School themed event: counted ledger points from rounds in the theme topics, in the window. */
+export const tournaments = pgTable(
+  "tournaments",
+  {
+    id: id(),
+    titleSw: text("title_sw").notNull(),
+    titleEn: text("title_en").notNull(),
+    stage: stageEnum("stage").notNull(),
+    /** Null = national. */
+    regionId: uuid("region_id").references(() => regions.id),
+    topicIds: jsonb("topic_ids").$type<string[]>().notNull(),
+    startsAt: ts("starts_at").notNull(),
+    endsAt: ts("ends_at").notNull(),
+    status: tournamentStatusEnum("status").notNull().default("scheduled"),
+    createdBy: uuid("created_by").references(() => admins.id),
+    createdAt: createdAt(),
+  },
+  (t) => [index("tournaments_window").on(t.startsAt, t.endsAt)],
+);
+
+export const battleStatusEnum = pgEnum("battle_status", ["pending", "active", "completed", "declined", "expired"]);
+
+/** Group vs Group: average counted points per active member in the topic during the window. */
+export const groupBattles = pgTable(
+  "group_battles",
+  {
+    id: id(),
+    challengerGroupId: uuid("challenger_group_id").notNull().references(() => groups.id, { onDelete: "cascade" }),
+    opponentGroupId: uuid("opponent_group_id").notNull().references(() => groups.id, { onDelete: "cascade" }),
+    topicId: uuid("topic_id").notNull().references(() => topics.id),
+    createdBy: uuid("created_by").references(() => students.id, { onDelete: "set null" }),
+    status: battleStatusEnum("status").notNull().default("pending"),
+    startsAt: ts("starts_at"),
+    endsAt: ts("ends_at"),
+    challengerScore: doublePrecision("challenger_score"),
+    opponentScore: doublePrecision("opponent_score"),
+    winnerGroupId: uuid("winner_group_id"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("battles_challenger").on(t.challengerGroupId), index("battles_opponent").on(t.opponentGroupId)],
+);

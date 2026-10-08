@@ -1,5 +1,10 @@
 import { notFound } from "next/navigation";
+import { GroupBattles } from "@/components/groups/group-battles";
 import { GroupDetail } from "@/components/groups/group-detail";
+import { pick } from "@/lib/i18n";
+import { battlesForGroup } from "@/server/battles";
+import { getDict } from "@/server/locale";
+import { subjectsWithTopics } from "@/server/views";
 import { config } from "@/server/config";
 import { groupForMember, recentReactions, refreshGroupStreak } from "@/server/groups";
 import { ApiError } from "@/server/http";
@@ -19,7 +24,15 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
     throw e;
   }
   const p = period === "all" ? "all" : "weekly";
-  const [streak, board, reactions] = await Promise.all([refreshGroupStreak(id), groupBoard(id, p), recentReactions(me, id)]);
+  const { locale } = await getDict();
+  const [streak, board, reactions, battles, subjects] = await Promise.all([
+    refreshGroupStreak(id),
+    groupBoard(id, p),
+    recentReactions(me, id),
+    battlesForGroup(id),
+    subjectsWithTopics(me.gradeLevelId),
+  ]);
+  const topics = subjects.flatMap((s) => s.topics.map((tp) => ({ id: tp.id, name: pick(tp, "name", locale) })));
   return (
     <GroupDetail
       me={me.id}
@@ -28,6 +41,7 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
       period={p}
       reactions={reactions.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }))}
       appUrl={config.APP_URL}
+      battles={<GroupBattles groupId={group.id} isCreator={group.creatorId === me.id} battles={battles} topics={topics} />}
     />
   );
 }
